@@ -35,6 +35,7 @@ def format_datetime(date):
 
 
 def create_slot(schedule):
+    from sqlalchemy import text
     conn, engine = get_db_connection()
     minutes = 30
     days = 7

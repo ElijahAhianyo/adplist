@@ -345,6 +345,9 @@ DATABASES = {
         "PASSWORD": "postgres",
         "HOST": "localhost",
         "PORT": "5432",
+        # 'TEST': {
+        #     'NAME': 'auto_tests',
+        # }
     }
 }
-DATABASE_URL = "postgresql+psycopg2://postgres:postgres@localhost:5432/adplist"
+DATABASE_URL = "postgresql+psycopg2://postgres:postgres@localhost:5432/test_adplist"
