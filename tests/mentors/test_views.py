@@ -14,11 +14,11 @@ from adplist.users.models import Expertise, User
 
 from django.conf import settings
 
-print(f"DB: {settings.DATABASES}")
 
 
 class BaseAPITestClass(APITestCase):
     def setUp(self):
+        settings.TEST = True
         self.client = APIClient(enforce_csrf_checks=True)
         self.expertise = Expertise.objects.create(
             name="UI/UX",
@@ -49,6 +49,17 @@ class BaseAPITestClass(APITestCase):
             is_member=True
         )
         self.user2.expertise.add(self.expertise)
+
+        self.user3 = User.objects.create(
+            first_name="Test",
+            last_name="User",
+            email="exampleuser3@gmail.com",
+            password="1234567890",
+            title="Mr.",
+            location="Random Location",
+            is_mentor=True
+        )
+        self.user3.expertise.add(self.expertise)
         # self.client.force_authenticate(user=self.user)
 
         self.member = Member.objects.create(
@@ -61,6 +72,10 @@ class BaseAPITestClass(APITestCase):
 
         self.mentor = Mentor.objects.create(
             user=self.user,
+            is_approved=True,
+        )
+        self.unapproved_mentor = Mentor.objects.create(
+            user=self.user3,
             is_approved=False,
         )
         self.mentor.mentorship_areas.add(self.mentorship_areas)
@@ -118,7 +133,6 @@ class GetMentorsTest(BaseAPITestClass):
 
 
 class GetParticularMentor(BaseAPITestClass):
-    """ Test retrieving a single user profile"""
 
     url = reverse_lazy("mentors:mentor_detail")
 
@@ -126,7 +140,7 @@ class GetParticularMentor(BaseAPITestClass):
         super(GetParticularMentor, self).setUp()
         self.url = reverse_lazy('mentors:mentor_detail', kwargs={"pk": self.mentor.pk})
 
-    def test_get_particular_mentor_profile(self):
+    def test_get_particular_mentor(self):
         queryset = Mentor.objects.get(pk=self.mentor.pk)
         serializer = MentorSerializer(queryset)
         response = self.client.get(self.url, {})
@@ -134,7 +148,7 @@ class GetParticularMentor(BaseAPITestClass):
         self.assertEqual(response_data, serializer.data)
         self.assertEqual(response.status_code, status.HTTP_200_OK)
 
-    def test_get_user_profile_does_not_exit(self):
+    def test_get_mentor_does_not_exit(self):
         self.url = reverse_lazy('mentors:mentor_detail', kwargs={"pk": self.mentor.pk + 1})
         response = self.client.get(self.url, {})
         self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
@@ -160,7 +174,7 @@ class CreateMentorTest(BaseAPITestClass):
         "mentorship_areas": []
     }
 
-    def test_create_user_phone_number_with_all_data(self):
+    def test_create_mentor_with_all_data(self):
         self.data["user"]["expertise"].append(self.expertise.pk)
         self.data["mentorship_areas"].append(self.mentorship_areas.pk)
         response = self.client.post(self.url, self.data, format="json")
@@ -238,7 +252,7 @@ class DeleteParticularMentorTest(BaseAPITestClass):
             },
         )
 
-    def test_particular_user_phone_number_delete(self):
+    def test_particular_mentor_delete(self):
         response = self.client.delete(self.url, {})
         self.assertEqual(response.status_code, status.HTTP_204_NO_CONTENT)
 
@@ -259,7 +273,6 @@ class GetSchedulesTest(BaseAPITestClass):
 
 
 class GetParticularSchedule(BaseAPITestClass):
-    """ Test retrieving a single user profile"""
 
     url = reverse_lazy("mentors:schedule_detail")
 
@@ -275,7 +288,7 @@ class GetParticularSchedule(BaseAPITestClass):
         self.assertEqual(response_data, serializer.data)
         self.assertEqual(response.status_code, status.HTTP_200_OK)
 
-    def test_get_user_profile_does_not_exit(self):
+    def test_get_schedule_does_not_exit(self):
         self.url = reverse_lazy('mentors:schedule_detail', kwargs={"pk": self.schedule.pk + 1})
         response = self.client.get(self.url, {})
         self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
@@ -293,7 +306,7 @@ class CreateScheduleTest(BaseAPITestClass):
         "closing_time": "2023-02-17T05:30:40.862Z",
     }
 
-    def test_create_user_phone_number_with_all_data(self):
+    def test_create_schedule_with_all_data(self):
         self.data["mentor"] = self.mentor.pk
         response = self.client.post(self.url, self.data, format="json")
         response_data = json.loads(response.content.decode('utf-8'))
@@ -357,7 +370,6 @@ class GetAppointmentsTest(BaseAPITestClass):
 
 
 class GetParticularAppointment(BaseAPITestClass):
-    """ Test retrieving a single user profile"""
 
     url = reverse_lazy("mentors:appointment_detail")
 
@@ -373,7 +385,7 @@ class GetParticularAppointment(BaseAPITestClass):
         self.assertEqual(response_data, serializer.data)
         self.assertEqual(response.status_code, status.HTTP_200_OK)
 
-    def test_get_user_profile_does_not_exit(self):
+    def test_get_appointment_does_not_exit(self):
         self.url = reverse_lazy('mentors:appointment_detail', kwargs={"pk": self.appointment.pk + 1})
         response = self.client.get(self.url, {})
         self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
@@ -384,6 +396,8 @@ class CreateAppointmentTest(BaseAPITestClass):
 
     def setUp(self):
         super(CreateAppointmentTest, self).setUp()
+        self.slot.status = SlotStatusChoiceTypes.FREE
+        self.slot.save()
 
     data = {
         "status": "PENDING",
@@ -395,7 +409,7 @@ class CreateAppointmentTest(BaseAPITestClass):
         # "slot": 1
     }
 
-    def test_create_user_phone_number_with_all_data(self):
+    def test_create_mentor_appointment(self):
         self.data["mentor"] = self.mentor.pk
         self.data["member"] = self.member.pk
         self.data["slot"] = self.slot.pk
@@ -406,6 +420,27 @@ class CreateAppointmentTest(BaseAPITestClass):
         serializer = AppointmentSerializer(queryset)
         self.assertEqual(response_data, serializer.data)
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+        self.assertEqual(queryset.slot.status, SlotStatusChoiceTypes.BUSY)
+
+    def test_create_unapproved_mentor_appointment(self):
+        self.data["mentor"] = self.unapproved_mentor.pk
+        self.data["member"] = self.member.pk
+        self.data["slot"] = self.slot.pk
+
+        response = self.client.post(self.url, self.data, format="json")
+        response_data = json.loads(response.content.decode('utf-8'))
+        self.assertEqual(response_data, ["mentor is not approved"])
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+
+    def test_create_appointment_with_booked_slot(self):
+        self.data["mentor"] = self.mentor.pk
+        self.data["member"] = self.member.pk
+        self.data["slot"] = self.busy_slot.pk
+
+        response = self.client.post(self.url, self.data, format="json")
+        response_data = json.loads(response.content.decode('utf-8'))
+        self.assertEqual(response_data, ["cant create appointment for already booked slot"])
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
 
 
 class UpdateAppointmentTest(BaseAPITestClass):
@@ -441,6 +476,6 @@ class DeleteParticularAppointmentTest(BaseAPITestClass):
             },
         )
 
-    def test_particular_user_phone_number_delete(self):
+    def test_particular_appointment_delete(self):
         response = self.client.delete(self.url, {})
         self.assertEqual(response.status_code, status.HTTP_204_NO_CONTENT)

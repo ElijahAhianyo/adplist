@@ -7,49 +7,17 @@ class MentorAdmin(admin.ModelAdmin):
     model = Mentor
     list_display = [
         "user",
-        # "mentorship_areas",
         "is_approved",
     ]
     list_filter = ["is_approved"]
     search_fields = ["user", "is_approved", ]
-
-    # readonly_fields = AUDIT_FIELDS + []
-    # fieldsets = [
-    #     (
-    #         _("UPDATE"),
-    #         {
-    #             "fields": [
-    #                 "building_name",
-    #                 "street_number",
-    #                 "street_name",
-    #                 "town_name",
-    #                 "postal_code",
-    #                 "city",
-    #                 "subregion",
-    #                 "region",
-    #                 "country",
-    #                 "longitude",
-    #                 "latitude",
-    #             ]
-    #         },
-    #     ),
-    #     (_("AUDIT"), {"fields": AUDIT_FIELDS}),
-    # ]
-
-    # inlines = [
-    #     UserProfileAddressInline,
-    #     CompanyAddressInline,
-    #     JobAdvertAddressInline,
-    # ]
 
 
 class MentorshipAreasAdmin(admin.ModelAdmin):
     model = MentorshipAreas
     list_display = [
         "name",
-        # "mentorship_areas",
-        # "is_approved",
-    ]
+]
     list_filter = ["name"]
     search_fields = ["name", ]
 

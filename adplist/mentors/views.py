@@ -3,25 +3,15 @@ from django.http import Http404
 from rest_framework import generics
 from rest_framework.views import APIView
 from rest_framework.response import Response
+from rest_framework import filters
+from django_filters.rest_framework import DjangoFilterBackend
 
 from adplist.mentors.serializers import MentorSerializer, ScheduleSerializer, AppointmentSerializer, \
     MentorUpdateSerializer, SlotSerializer
+from adplist.mentors.filters import SlotFilter
 from adplist.mentors.models import Mentor, Schedule, Appointment, Slot
 from rest_framework.permissions import AllowAny
 
-
-#
-# class MentorListView(APIView):
-#     def get(self, request):
-#         queryset = Mentor.object.all()
-#         serializer = MentorSerializer(queryset, many=True)
-#         return Response(serializer.data)
-#
-#     def post(self, request):
-#         serializer = MentorSerializer(data=request.data)
-#         serializer.is_valid(raise_exception=True)
-#         serializer.save()
-#         return Response(serializer.data)
 
 class MentorList(generics.ListCreateAPIView):
     queryset = Mentor.objects.all()
@@ -67,9 +57,6 @@ class AppointmentDetailView(generics.RetrieveUpdateDestroyAPIView):
     serializer_class = AppointmentSerializer
     permission_classes = [AllowAny]
 
-    # def get_serializer_class(self):
-    #     return MentorUpdateSerializer if self.request.action in ["PUT", "PATCH"] else MentorSerializer
-
 
 class ScheduleList(generics.ListCreateAPIView):
     queryset = Schedule.objects.all()
@@ -82,11 +69,10 @@ class ScheduleDetailView(generics.RetrieveUpdateDestroyAPIView):
     serializer_class = ScheduleSerializer
     permission_classes = [AllowAny]
 
-    # def get_serializer_class(self):
-    #     return MentorUpdateSerializer if self.request.action in ["PUT", "PATCH"] else MentorSerializer
-
 
 class SlotList(generics.ListAPIView):
+    filter_backends = (DjangoFilterBackend,)
+    filterset_class = SlotFilter
     queryset = Slot.objects.all()
     serializer_class = SlotSerializer
     permission_classes = [AllowAny]

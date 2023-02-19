@@ -4,13 +4,14 @@ from django_filters.rest_framework import DjangoFilterBackend
 
 from adplist.members.serializers import MemberSerializer, MemberUpdateSerializer
 from adplist.members.models import Member
+from adplist.members.filters import MemberFilter
 
 from rest_framework.permissions import AllowAny
 
 
 class MemberList(generics.ListCreateAPIView):
-    search_fields = ['user__first_name']
-    filterset_fields = ["user__first_name", ]
+    search_fields = ['user__expertise__name']
+    filterset_class = MemberFilter
     filter_backends = (filters.SearchFilter,DjangoFilterBackend)
     queryset = Member.objects.all()
     serializer_class = MemberSerializer

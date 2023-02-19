@@ -16,6 +16,10 @@ class MemberSerializer(WritableNestedModelSerializer):
             "id": {"read_only": True},
         }
 
+    def create(self, validated_data):
+        validated_data["user"]["is_member"] = True
+        return super().create(validated_data)
+
 
 class MemberUpdateSerializer(WritableNestedModelSerializer):
     user = UserUpdateSerializer(required=True)

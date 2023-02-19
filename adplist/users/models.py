@@ -37,6 +37,3 @@ class User(AbstractBaseUser, PermissionsMixin):
 
     objects = CustomUserManager()
 
-    def save(self, *args, **kwargs):
-        print(f"args| {args}, kwargs: {kwargs}")
-        return super().save(*args, **kwargs)

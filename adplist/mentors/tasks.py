@@ -8,7 +8,6 @@ conn = get_db_connection()
 
 @celery_app.task
 def create_slot(schedule):
-    from sqlalchemy import text
     conn, engine = get_db_connection()
     minutes = 30
     days = 7

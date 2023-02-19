@@ -31,6 +31,10 @@ class MentorSerializer(WritableNestedModelSerializer):
             "is_approved": {"read_only": True}
         }
 
+    def create(self, validated_data):
+        validated_data["user"]["is_mentor"] = True
+        return super().create(validated_data)
+
 
 class MentorUpdateSerializer(WritableNestedModelSerializer):
     user = UserUpdateSerializer(required=False)
@@ -44,28 +48,6 @@ class MentorUpdateSerializer(WritableNestedModelSerializer):
         }
 
 
-# class DaysOfWeekSerializer(serializers.ModelSerializer):
-#     class Meta:
-#         model = DaysOfWeek
-#         exclude = ["created_at", "updated_at"]
-#
-#         extra_kwargs = {
-#             "id": {"read_only": True},
-#             "schedule": {"read_only": True},
-#         }
-#
-#
-# class NotAvailableSerializer(serializers.ModelSerializer):
-#     class Meta:
-#         model = NotAvailable
-#         exclude = ["created_at", "updated_at"]
-#
-#         extra_kwargs = {
-#             "id": {"read_only": True},
-#             "schedule": {"read_only": True},
-#         }
-
-
 class ScheduleSerializer(WritableNestedModelSerializer):
     # days_of_week = DaysOfWeekSerializer(required=False)
     # not_available = NotAvailableSerializer(required=False)
@@ -73,7 +55,6 @@ class ScheduleSerializer(WritableNestedModelSerializer):
     class Meta:
         model = Schedule
         fields = ["mentor", "all_day", "opening_time", "closing_time",
-                  # "days_of_week", "not_available"
                   ]
 
         extra_kwargs = {
@@ -102,10 +83,13 @@ class AppointmentSerializer(serializers.ModelSerializer):
         }
 
     def create(self, validated_data):
-        print(f"validated_data: {validated_data}")
         slot = validated_data.get("slot")
+        mentor = validated_data.get("mentor")
         if slot and slot.status == SlotStatusChoiceTypes.BUSY:
             raise ValidationError(detail="cant create appointment for already booked slot",
+                                  code=status.HTTP_400_BAD_REQUEST)
+        if mentor and not mentor.is_approved:
+            raise ValidationError(detail="mentor is not approved",
                                   code=status.HTTP_400_BAD_REQUEST)
 
         return super().create(validated_data)

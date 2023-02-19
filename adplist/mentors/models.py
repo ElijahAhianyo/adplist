@@ -24,18 +24,6 @@ class Schedule(TimeStampedModel):
     closing_time = models.DateTimeField('Closing time of day (ignored if allDay = true)', blank=True, null=True)
 
 
-# class DaysOfWeek(TimeStampedModel):
-#     schedule = models.ForeignKey(Schedule, related_name='+', on_delete=models.CASCADE)
-#     day = models.CharField('day of the week', max_length=250, choices=ScheduleDaysChoiceTypes.choices)
-#
-#
-# class NotAvailable(TimeStampedModel):
-#     schedule = models.ForeignKey(Schedule, related_name='+', on_delete=models.CASCADE)
-#     description = models.TextField('The reason that can be presented to the user as to why this time is not available.')
-#     period_start = models.DateField('Service is not available (seasonally or for a public holiday) from this date.')
-#     period_end = models.DateField('Service is not available (seasonally or for a public holiday) from this date.')
-#
-
 class Slot(TimeStampedModel):
     schedule = models.ForeignKey(Schedule, related_name="+", on_delete=models.CASCADE)
     status = models.CharField(max_length=10, choices=SlotStatusChoiceTypes.choices, default=SlotStatusChoiceTypes.FREE)

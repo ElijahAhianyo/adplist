@@ -2,64 +2,53 @@
 
 ADPList Take home assignment
 
-[![Built with Cookiecutter Django](https://img.shields.io/badge/built%20with-Cookiecutter%20Django-ff69b4.svg?logo=cookiecutter)](https://github.com/cookiecutter/cookiecutter-django/)
-[![Black code style](https://img.shields.io/badge/code%20style-black-000000.svg)](https://github.com/ambv/black)
+This project implements the core backend logic of ADPList as a take home assignment.
 
-## Settings
+## How it works.
+The application contains two types of users:
+- Mentor
+- Member
 
-Moved to [settings](http://cookiecutter-django.readthedocs.io/en/latest/settings.html).
+### Mentor
+A mentor can:
+- register(after which they are rendered unapproved and need a superuser to approve them via `PATCH /mentors/{id}/approve`)
+- sign in (Authentication uses JWT)
+- create schedule. when a mentor creates a schedule, the available time is split into 30 minutes slots(created asynchronously).
+- create appointment. An appointment can be scheduled between an approved mentor and a member.
 
-## Basic Commands
+### Member
+A member can:
+- register
+- sign in
+- read available slots for mentor
+- book an appointment with a mentor.
 
-### Setting Up Your Users
 
--   To create a **normal user account**, just go to Sign Up and fill out the form. Once you submit it, you'll see a "Verify Your E-mail Address" page. Go to your console to see a simulated email verification message. Copy the link into your browser. Now the user's email should be verified and ready to go.
+# How to run
 
--   To create a **superuser account**, use this command:
+This project runs on docker. Run the following command:
+`docker-compose -f local.yml --build up`. If everything goes on well(hopefully it does :) ), your application 
+hould be accessible on port `8000`.
 
-        $ python manage.py createsuperuser
+Go to `127.0.0.1:8000/api/docs/` to access the docs.
 
-For convenience, you can keep your normal user logged in on Chrome and your superuser logged in on Firefox (or similar), so that you can see how the site behaves for both kinds of users.
+## What I would have done differently/better
+Given the time constraints, I would revamp the schedules model to a more sophisticated one;
+mentors can create different schedules for different days as well an option to recur a schedule. For eg. A schedule should 
+be created for a period of time say 6 weeks. Also, I would add  Non-available days to schedule. This could have possible 
+days such as holidays and vacation where mentor isnt available(this should also reflect in the slots).
 
-### Type checks
+I would also duplicate endpoints for members to create appointments, read mentor(Currently they exist only for the mentor)
 
-Running type checks with mypy:
+I would also fix the broken test case in creating schedules. Currently, slots are created asynchronously (using celery) using a 
+signal on the schedule. When a schedule is created, slots are created using Pandas rather than django. This choice was made because
+Pandas is a lot faster and optimized than django in creating bulk records. However, for some strange reason, django seem to flush the data
+in the test database which results in an integrity error since the schedule pk cant be found by sqlalchemy. To fix this, I would 
+create a seed for testing rather than manually creating objects in the test setup.
 
-    $ mypy adplist
+I would also deploy the application to AWS, but I have exhausted my trial periods and Heroku doesnt look feasible to run for free after they updated their 
+terms and conditions.
 
-### Test coverage
 
-To run the tests, check your test coverage, and generate an HTML coverage report:
 
-    $ coverage run -m pytest
-    $ coverage html
-    $ open htmlcov/index.html
-
-#### Running tests with pytest
-
-    $ pytest
-
-### Live reloading and Sass CSS compilation
-
-Moved to [Live reloading and SASS compilation](https://cookiecutter-django.readthedocs.io/en/latest/developing-locally.html#sass-compilation-live-reloading).
-
-### Celery
-
-This app comes with Celery.
-
-To run a celery worker:
-
-``` bash
-cd adplist
-celery -A config.celery_app worker -l info
-```
-
-Please note: For Celery's import magic to work, it is important *where* the celery commands are run. If you are in the same folder with *manage.py*, you should be right.
-
-## Deployment
-
-The following details how to deploy this application.
-
-### Docker
-
-See detailed [cookiecutter-django Docker documentation](http://cookiecutter-django.readthedocs.io/en/latest/deployment-with-docker.html).
+created by Elijah Ahianyo

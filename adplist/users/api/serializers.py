@@ -18,7 +18,7 @@ class ExpertiseSerializer(serializers.ModelSerializer):
 class UserSerializer(serializers.ModelSerializer):
     class Meta:
         model = User
-        fields = ["first_name", "last_name", "email", "password", "location", "title", "employer", "expertise"]
+        fields = ["first_name", "last_name", "email", "password", "location", "title", "employer", "expertise", "is_member", "is_mentor"]
 
         extra_kwargs = {
             "password": {"write_only": True},
