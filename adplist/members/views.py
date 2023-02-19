@@ -6,7 +6,7 @@ from adplist.members.serializers import MemberSerializer, MemberUpdateSerializer
 from adplist.members.models import Member
 from adplist.members.filters import MemberFilter
 
-from rest_framework.permissions import AllowAny
+from rest_framework.permissions import AllowAny, IsAuthenticated
 
 
 class MemberList(generics.ListCreateAPIView):
@@ -21,7 +21,7 @@ class MemberList(generics.ListCreateAPIView):
 class MemberDetailView(generics.RetrieveUpdateDestroyAPIView):
     queryset = Member.objects.all()
     serializer_class = MemberSerializer
-    permission_classes = [AllowAny]
+    permission_classes = [IsAuthenticated]
 
     def get_serializer_class(self):
         return MemberUpdateSerializer if self.request.method in ["PUT", "PATCH"] else MemberSerializer
